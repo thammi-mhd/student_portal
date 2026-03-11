@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | Login</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1>Student Portal</h1>
+            <p>Welcome back! Please login to your account.</p>
+            
+            <div id="loginAlert"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="form-control" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-control" required placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn btn-primary" id="loginBtn">Login</button>
+            </form>
+            
+            <p class="mt-3" style="font-size: 0.875rem;">
+                Don't have an account? <a href="register.html" style="color: var(--primary);">Register Instead</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Redirect if already authenticated
+        redirectIfAuth();
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btn.textContent = 'Logging in...';
+            btn.disabled = true;
+
+            try {
+                const response = await api.loginUser({ email, password });
+                
+                // Assuming typical JSON payload returning token
+                const token = response.token || response.access_token || response.auth_token;
+                
+                if (token) {
+                    setAuthToken(token);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    showAlert('loginAlert', 'No token returned from server', 'error');
+                }
+            } catch (error) {
+                showAlert('loginAlert', error.message || 'Login failed. Please check credentials.', 'error');
+            } finally {
+                btn.textContent = 'Login';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

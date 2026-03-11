@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | Mark Attendance</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        requireAuth();
+    </script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Mobile Top Bar -->
+        <div class="mobile-top-bar">
+            <span style="font-weight: 700; font-size: 1.25rem;">Student Portal</span>
+            <button class="mobile-toggle" id="mobileToggle">☰</button>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                Student Portal
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="students.html">Students</a></li>
+                <li><a href="attendance.html" class="active">Attendance</a></li>
+                <li style="margin-top: auto;"><a href="#" onclick="logout()">Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h2>Attendance Management</h2>
+                <div class="user-profile">
+                    <span id="userNameDisplay">Administrator</span>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="page-header">
+                    <h1>Mark & Track Attendance</h1>
+                </div>
+
+                <div id="attendanceAlert"></div>
+
+                <!-- Mark Attendance Card -->
+                <div class="card">
+                    <h2>Mark Attendance</h2>
+                    <p class="mb-4" style="color: var(--text-muted); font-size: 0.875rem;">Upload an image or frame snapshot to identify the student and mark them present.</p>
+                    
+                    <form id="markAttendanceForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label>Capture / Upload Image</label>
+                            <div class="file-upload-wrapper" id="attendFileWrapper">
+                                <div class="upload-text" id="attendUploadText">Click or drag an image here to scan a face.</div>
+                                <input type="file" id="attendImage" name="image" accept="image/*" required>
+                            </div>
+                            <img id="attendImagePreview" class="img-preview" alt="Attendance Face Preview">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="markAttendanceBtn">Scan & Mark Attendance</button>
+                    </form>
+
+                    <!-- Recognition Result Output -->
+                    <div id="recognitionResult" style="display: none; margin-top: 1.5rem; padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); background-color: #f8fafc;">
+                        <h3 style="font-size: 1.125rem; margin-bottom: 0.75rem;" id="resultTitle">Result</h3>
+                        <div id="resultContent" style="font-size: 0.875rem; color: var(--text-main);"></div>
+                    </div>
+                </div>
+
+                <!-- Records Table Card -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2>Attendance Records</h2>
+                        <button class="btn btn-outline" style="width: auto; padding: 0.25rem 0.75rem; font-size: 0.75rem;" onclick="fetchAttendance()">Refresh List</button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table" id="attendanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center">Loading records...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Move function attachment below elements -->
+    <script src="js/attendance.js"></script>
+</body>
+</html>

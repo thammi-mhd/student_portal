@@ -1,0 +1,81 @@
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
+from extensions import db
+from models.attendance import Attendance
+from models.student import Student
+from services.face_service import FaceService
+from services.recognition_service import RecognitionService
+from utils.limiter import limiter
+
+attendance_bp = Blueprint('attendance', __name__)
+
+@attendance_bp.route('/mark', methods=['POST'])
+@jwt_required()
+@limiter.limit("10 per minute")
+def mark_attendance():
+    """
+    Mark student attendance via face recognition
+    ---
+    tags:
+      - Attendance
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: image
+        in: formData
+        type: file
+        required: true
+    responses:
+      200:
+        description: Attendance marked successfully
+      400:
+        description: Face not recognized or processing error
+      404:
+        description: Student not found
+    """
+    if 'image' not in request.files:
+        return jsonify({"message": "No image part in the request"}), 400
+        
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({"message": "No selected file"}), 400
+
+    # Save temporary image for recognition
+    temp_path = FaceService.save_temp_image(file)
+    if not temp_path:
+        return jsonify({"message": "Invalid file format. Allowed: png, jpg, jpeg"}), 400
+
+    try:
+        # Match face against database
+        student_id, message = RecognitionService.identify_student(temp_path, tolerance=0.5)
+
+        if student_id:
+            # Check if student exists
+            student = Student.query.get(student_id)
+            if not student:
+                return jsonify({"message": "Student record not found"}), 404
+
+            # Mark attendance
+            attendance_record = Attendance(student_id=student_id)
+            db.session.add(attendance_record)
+            db.session.commit()
+
+            response = {
+                "message": "Attendance marked successfully",
+                "student": student.to_dict(),
+                "timestamp": attendance_record.timestamp.isoformat()
+            }
+            status_code = 200
+        else:
+            response = {"message": message}
+            status_code = 400
+            
+    except Exception as e:
+        response = {"message": "Error marking attendance", "error": str(e)}
+        status_code = 500
+        
+    finally:
+        # Clean up temporary image
+        FaceService.delete_image(temp_path)
+
+    return jsonify(response), status_code
