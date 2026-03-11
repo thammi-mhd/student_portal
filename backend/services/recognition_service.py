@@ -25,6 +25,26 @@ class RecognitionService:
             return None
 
     @staticmethod
+    def extract_average_encoding(image_paths):
+        """
+        Takes a list of image paths, extracts encodings for each, 
+        and averages them to create a robust face encoding.
+        """
+        valid_encodings = []
+        for path in image_paths:
+            encoding = RecognitionService.extract_encoding(path)
+            # Only add if it's a valid numpy array (not an error string or None)
+            if encoding is not None and not isinstance(encoding, str):
+                valid_encodings.append(encoding)
+                
+        if not valid_encodings:
+            return "No valid faces found in uploaded images"
+            
+        # Average all numpy arrays across axis 0
+        average_encoding = np.mean(valid_encodings, axis=0)
+        return average_encoding
+
+    @staticmethod
     def identify_student(image_path, tolerance=0.5):
         """
         Loads an uploaded temporary image, extracts encoding, and compares it

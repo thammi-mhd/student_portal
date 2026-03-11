@@ -8,6 +8,7 @@ class Student(db.Model):
     name = db.Column(db.String(100), nullable=False)
     roll_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
     department = db.Column(db.String(100), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True, index=True) # Ensure backward compatibility
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -20,5 +21,6 @@ class Student(db.Model):
             'name': self.name,
             'roll_number': self.roll_number,
             'department': self.department,
+            'course_id': self.course_id,
             'created_at': self.created_at.isoformat()
         }

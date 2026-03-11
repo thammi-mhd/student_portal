@@ -55,13 +55,47 @@ def mark_attendance():
             if not student:
                 return jsonify({"message": "Student record not found"}), 404
 
+            if not student.course_id:
+                return jsonify({"message": "Student is not enrolled in any course"}), 400
+
+            # Find active class session for student's course
+            from datetime import datetime
+            now = datetime.utcnow()
+            current_date = now.date()
+            current_time = now.time()
+
+            from models.class_session import ClassSession
+            active_session = ClassSession.query.filter(
+                ClassSession.course_id == student.course_id,
+                ClassSession.date == current_date,
+                ClassSession.start_time <= current_time,
+                ClassSession.end_time >= current_time
+            ).first()
+
+            if not active_session:
+                return jsonify({"message": "No active class session found for your course right now."}), 400
+
+            # Check if attendance is already recorded for this session
+            existing_attendance = Attendance.query.filter_by(
+                student_id=student.id,
+                class_session_id=active_session.id
+            ).first()
+
+            if existing_attendance:
+                return jsonify({"message": "Attendance already marked for this session."}), 400
+
             # Mark attendance
-            attendance_record = Attendance(student_id=student_id)
+            attendance_record = Attendance(
+                student_id=student_id,
+                class_session_id=active_session.id,
+                timestamp=now
+            )
             db.session.add(attendance_record)
             db.session.commit()
 
             response = {
                 "message": "Attendance marked successfully",
+                "session": {"subject": active_session.subject, "id": active_session.id},
                 "student": student.to_dict(),
                 "timestamp": attendance_record.timestamp.isoformat()
             }

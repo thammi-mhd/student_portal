@@ -31,6 +31,23 @@ class FaceService:
         return None
 
     @staticmethod
+    def save_temp_images(files):
+        """
+        Saves a batch of temporary images.
+        """
+        filepaths = []
+        import uuid
+        for i, file in enumerate(files):
+            if file and allowed_file(file.filename):
+                ext = file.filename.rsplit('.', 1)[1].lower()
+                # Create unique name for temp files
+                filename = secure_filename(f"temp_{uuid.uuid4().hex}_{i}.{ext}")
+                filepath = os.path.join(Config.TEMP_UPLOAD_FOLDER, filename)
+                file.save(filepath)
+                filepaths.append(filepath)
+        return filepaths
+
+    @staticmethod
     def delete_image(filepath):
         """
         Deletes an image file if it exists.
@@ -39,3 +56,11 @@ class FaceService:
             os.remove(filepath)
             return True
         return False
+
+    @staticmethod
+    def delete_images(filepaths):
+        """
+        Delete a list of images.
+        """
+        for fp in filepaths:
+            FaceService.delete_image(fp)

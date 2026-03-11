@@ -41,11 +41,13 @@ def create_app():
     from routes.student_routes import student_bp
     from routes.attendance_routes import attendance_bp
     from routes.admin_routes import admin_bp
+    from routes.course_routes import course_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(student_bp, url_prefix='/api/v1/students')
     app.register_blueprint(attendance_bp, url_prefix='/api/v1/attendance')
     app.register_blueprint(admin_bp, url_prefix='/api/v1/admin')
+    app.register_blueprint(course_bp, url_prefix='/api/v1/courses')
 
     # Global error handlers
     @app.errorhandler(400)
